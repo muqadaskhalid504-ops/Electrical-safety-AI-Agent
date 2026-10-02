@@ -1,3 +1,4 @@
+ ```python
 import streamlit as st
 from groq import Groq
 
@@ -170,7 +171,7 @@ if st.button("🔍 Analyze Safety Risk", type="primary"):
             try:
 
                 response = client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
+                    model="openai/gpt-oss-120b",
                     messages=[
                         {
                             "role": "system",
@@ -207,3 +208,4 @@ st.caption(
     "⚡ Electrical Safety AI Agent | Hackathon Project | "
     "AI-assisted safety guidance"
 )
+```
