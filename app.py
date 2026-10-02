@@ -1,4 +1,4 @@
-import streamlit as st
+ import streamlit as st
 from groq import Groq
 import re
 
@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # --------------------------------------------------
-# SESSION STATE - CHAT HISTORY
+# SESSION STATE
 # --------------------------------------------------
 
 if "history" not in st.session_state:
@@ -52,6 +52,27 @@ st.markdown("""
     border-radius: 10px;
     background-color: #f5f7fa;
     border: 1px solid #dddddd;
+    text-align: center;
+}
+
+.dashboard-card {
+    padding: 20px;
+    border-radius: 12px;
+    background-color: #f5f7fa;
+    border: 1px solid #dddddd;
+    text-align: center;
+    min-height: 120px;
+}
+
+.dashboard-title {
+    font-size: 16px;
+    color: #666666;
+}
+
+.dashboard-value {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 10px;
 }
 
 .risk-low {
@@ -94,6 +115,14 @@ st.markdown("""
     font-weight: bold;
 }
 
+.recommendation-box {
+    padding: 20px;
+    border-radius: 12px;
+    background-color: #eef6ff;
+    border: 1px solid #b8daff;
+    margin-top: 20px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -118,6 +147,10 @@ with st.sidebar:
 
             st.caption(
                 item["problem"]
+            )
+
+            st.caption(
+                f"Risk: {item['risk']}"
             )
 
             st.divider()
@@ -167,7 +200,7 @@ Never touch exposed or live electrical components.
 """, unsafe_allow_html=True)
 
 # --------------------------------------------------
-# GROQ API
+# GROQ
 # --------------------------------------------------
 
 api_key = st.secrets["GROQ_API_KEY"]
@@ -177,7 +210,7 @@ client = Groq(
 )
 
 # --------------------------------------------------
-# LOAD KNOWLEDGE BASE
+# KNOWLEDGE BASE
 # --------------------------------------------------
 
 @st.cache_data
@@ -254,7 +287,7 @@ def retrieve_relevant_information(
     )
 
 # --------------------------------------------------
-# AI SYSTEM PROMPT
+# SYSTEM PROMPT
 # --------------------------------------------------
 
 system_prompt = """
@@ -336,7 +369,7 @@ Electrical Safety Knowledge Base
 """
 
 # --------------------------------------------------
-# PROBLEM CATEGORY
+# CATEGORY
 # --------------------------------------------------
 
 st.subheader("📂 Select Problem Category")
@@ -386,7 +419,7 @@ with col3:
     """, unsafe_allow_html=True)
 
 # --------------------------------------------------
-# USER INPUT
+# USER PROBLEM
 # --------------------------------------------------
 
 st.subheader("🔍 Describe Your Electrical Problem")
@@ -401,7 +434,7 @@ user_problem = st.text_area(
 )
 
 # --------------------------------------------------
-# ANALYZE BUTTON
+# ANALYZE
 # --------------------------------------------------
 
 if st.button(
@@ -424,7 +457,7 @@ if st.button(
             try:
 
                 # ------------------------------------------
-                # RAG
+                # RETRIEVE KNOWLEDGE
                 # ------------------------------------------
 
                 relevant_information = (
@@ -456,7 +489,7 @@ and retrieved safety knowledge.
 """
 
                 # ------------------------------------------
-                # GROQ
+                # AI RESPONSE
                 # ------------------------------------------
 
                 response = client.chat.completions.create(
@@ -519,21 +552,69 @@ and retrieved safety knowledge.
                 )
 
                 # ------------------------------------------
-                # CATEGORY
+                # SAFETY DASHBOARD
                 # ------------------------------------------
 
                 st.subheader(
-                    "📂 Problem Category"
+                    "📊 Safety Summary Dashboard"
                 )
 
-                st.info(category)
+                dashboard_col1, dashboard_col2, dashboard_col3 = st.columns(3)
+
+                with dashboard_col1:
+
+                    st.markdown(
+                        f"""
+                        <div class="dashboard-card">
+                        <div class="dashboard-title">
+                        🚦 Risk Level
+                        </div>
+                        <div class="dashboard-value">
+                        {risk_level}
+                        </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+                with dashboard_col2:
+
+                    st.markdown(
+                        f"""
+                        <div class="dashboard-card">
+                        <div class="dashboard-title">
+                        📂 Category
+                        </div>
+                        <div class="dashboard-value">
+                        {category}
+                        </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+                with dashboard_col3:
+
+                    st.markdown(
+                        """
+                        <div class="dashboard-card">
+                        <div class="dashboard-title">
+                        📚 Knowledge
+                        </div>
+                        <div class="dashboard-value">
+                        RAG Used
+                        </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
 
                 # ------------------------------------------
-                # RISK
+                # RISK DISPLAY
                 # ------------------------------------------
 
                 st.subheader(
-                    "🚦 Safety Risk Level"
+                    "🚦 Detailed Risk Level"
                 )
 
                 if risk_level == "Low":
@@ -587,11 +668,27 @@ and retrieved safety knowledge.
                     )
 
                 # ------------------------------------------
+                # SAFETY RECOMMENDATION
+                # ------------------------------------------
+
+                st.markdown("""
+                <div class="recommendation-box">
+                <b>🛡️ Safety Recommendation</b><br>
+                Follow the safety precautions provided by the AI.
+                Do not touch exposed or energized electrical parts.
+                If the situation involves shock, fire, smoke,
+                major sparking, or exposed live parts, move away
+                from the danger and seek appropriate professional
+                or emergency assistance.
+                </div>
+                """, unsafe_allow_html=True)
+
+                # ------------------------------------------
                 # AI ANALYSIS
                 # ------------------------------------------
 
                 st.subheader(
-                    "🛡️ Safety Analysis"
+                    "🧠 AI Safety Analysis"
                 )
 
                 st.markdown(answer)
