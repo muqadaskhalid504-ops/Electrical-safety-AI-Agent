@@ -1,5 +1,7 @@
+ ```python
 import streamlit as st
 from groq import Groq
+import re
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -68,14 +70,90 @@ Never touch exposed or live electrical components.
 api_key = st.secrets["GROQ_API_KEY"]
 client = Groq(api_key=api_key)
 
+# ---------------- LOAD KNOWLEDGE BASE ----------------
+@st.cache_data
+def load_knowledge_base():
+
+    with open(
+        "knowledge_base/safety_knowledge.txt",
+        "r",
+        encoding="utf-8"
+    ) as file:
+
+        return file.read()
+
+
+knowledge_base = load_knowledge_base()
+
+
+# ---------------- SIMPLE RAG RETRIEVAL ----------------
+def retrieve_relevant_information(user_question, knowledge):
+
+    # Convert text into sections
+    sections = re.split(r"\n(?=\d+\.)", knowledge)
+
+    question_words = set(
+        re.findall(
+            r"\b[a-zA-Z]{4,}\b",
+            user_question.lower()
+        )
+    )
+
+    scored_sections = []
+
+    for section in sections:
+
+        section_lower = section.lower()
+
+        score = 0
+
+        for word in question_words:
+
+            if word in section_lower:
+                score += 1
+
+        scored_sections.append(
+            (score, section)
+        )
+
+    # Sort by relevance
+    scored_sections.sort(
+        key=lambda x: x[0],
+        reverse=True
+    )
+
+    # Select top relevant sections
+    relevant_sections = [
+        section
+        for score, section in scored_sections[:3]
+        if score > 0
+    ]
+
+    # If no exact match, provide general safety knowledge
+    if not relevant_sections:
+        relevant_sections = [
+            knowledge[:5000]
+        ]
+
+    return "\n\n".join(relevant_sections)
+
+
 # ---------------- AI SYSTEM PROMPT ----------------
 system_prompt = """
 You are an Electrical Safety AI Agent.
 
 Your purpose is to help users understand possible electrical safety
-hazards and provide safe, beginner-friendly guidance.
+hazards using the provided safety knowledge.
 
-Follow this decision process for every user problem:
+IMPORTANT:
+
+The information retrieved from the knowledge base is the primary
+reference for safety guidance.
+
+Do not invent safety facts when relevant information is available
+in the knowledge base.
+
+Follow this decision process:
 
 STEP 1 — Understand the situation
 Identify what electrical equipment, condition, or problem the user
@@ -100,7 +178,7 @@ Choose exactly ONE:
 - High
 - Emergency
 
-Use Emergency only when there is an immediate threat such as:
+Use Emergency when there is an immediate threat such as:
 - Electric shock
 - Active fire
 - Smoke from electrical equipment
@@ -122,9 +200,8 @@ IMPORTANT SAFETY RULES:
 - Never tell the user to bypass a fuse, breaker, RCD, or other
   protection device.
 - Never encourage dangerous electrical experiments.
-- Never provide instructions for working on energized electrical
-  equipment.
-- Do not pretend to physically inspect or diagnose equipment.
+- Never provide instructions for working on energized equipment.
+- Do not pretend to physically inspect equipment.
 - If uncertain, prioritize safety and recommend professional help.
 
 If the user asks how to repair, modify, open, rewire, or troubleshoot
@@ -133,34 +210,35 @@ for performing the dangerous work.
 
 Instead, explain the hazard and recommend a qualified electrician.
 
-For emergency situations such as fire, electric shock, smoke,
-exposed live wires, major sparks, or severe overheating, clearly
-tell the user to move away from the danger and seek appropriate
-emergency/professional help.
+For emergency situations, clearly tell the user to move away from
+the danger and seek appropriate emergency/professional help.
 
 Use this response format:
 
 ⚠️ Possible Hazard:
-Explain the possible electrical hazard.
+...
 
 🔴 Risk Level:
 Low / Medium / High / Emergency
 
 📖 Why It Is Dangerous:
-Explain the risk in simple language.
+...
 
 🛡️ Safety Precautions:
-Give safe precautions that do not require dangerous electrical work.
+...
 
 👷 Professional Help:
-Explain whether a qualified electrician should inspect the situation.
+...
 
 🚨 Emergency Warning:
-If there is immediate danger, clearly explain that the user should
-move away and seek appropriate emergency/professional help.
+...
 
-Always prioritize human safety over providing technical instructions.
+At the end, add:
+
+📚 Knowledge Source:
+Electrical Safety Knowledge Base
 """
+
 
 # ---------------- EXAMPLES ----------------
 st.subheader("💡 Example Problems")
@@ -188,6 +266,7 @@ with col3:
     </div>
     """, unsafe_allow_html=True)
 
+
 # ---------------- USER INPUT ----------------
 st.subheader("🔍 Describe Your Electrical Problem")
 
@@ -200,18 +279,42 @@ user_problem = st.text_area(
     height=150
 )
 
+
 # ---------------- ANALYZE BUTTON ----------------
 if st.button("🔍 Analyze Safety Risk", type="primary"):
 
     if not user_problem.strip():
 
-        st.warning("Please describe an electrical problem first.")
+        st.warning(
+            "Please describe an electrical problem first."
+        )
 
     else:
 
-        with st.spinner("⚡ AI Agent is analyzing the safety risk..."):
+        with st.spinner(
+            "⚡ Retrieving safety information and analyzing risk..."
+        ):
 
             try:
+
+                # Retrieve relevant knowledge
+                relevant_information = retrieve_relevant_information(
+                    user_problem,
+                    knowledge_base
+                )
+
+                # Send retrieved knowledge + user problem to AI
+                user_message = f"""
+USER'S ELECTRICAL PROBLEM:
+
+{user_problem}
+
+RETRIEVED SAFETY KNOWLEDGE:
+
+{relevant_information}
+
+Use the retrieved safety knowledge to analyze the user's problem.
+"""
 
                 response = client.chat.completions.create(
                     model="openai/gpt-oss-120b",
@@ -222,7 +325,7 @@ if st.button("🔍 Analyze Safety Risk", type="primary"):
                         },
                         {
                             "role": "user",
-                            "content": user_problem
+                            "content": user_message
                         }
                     ],
                     temperature=0.2
@@ -230,11 +333,20 @@ if st.button("🔍 Analyze Safety Risk", type="primary"):
 
                 answer = response.choices[0].message.content
 
-                st.success("Safety analysis completed.")
+                st.success(
+                    "Safety analysis completed using the knowledge base."
+                )
 
                 st.subheader("🛡️ Safety Analysis")
 
                 st.markdown(answer)
+
+                # Show retrieved information
+                with st.expander(
+                    "📚 View Retrieved Safety Information"
+                ):
+
+                    st.write(relevant_information)
 
             except Exception as e:
 
@@ -244,11 +356,12 @@ if st.button("🔍 Analyze Safety Risk", type="primary"):
 
                 st.write(str(e))
 
+
 # ---------------- FOOTER ----------------
 st.divider()
 
 st.caption(
     "⚡ Electrical Safety AI Agent | Hackathon Project | "
-    "AI-assisted safety guidance"
+    "RAG-based safety guidance"
 )
-
+```
