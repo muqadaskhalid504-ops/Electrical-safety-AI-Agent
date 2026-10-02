@@ -1,4 +1,3 @@
- ```python
 import streamlit as st
 from groq import Groq
 import re
@@ -364,4 +363,3 @@ st.caption(
     "⚡ Electrical Safety AI Agent | Hackathon Project | "
     "RAG-based safety guidance"
 )
-```
