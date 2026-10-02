@@ -370,10 +370,7 @@ if st.button(
 
             try:
 
-                # ------------------------------------------
-                # RAG RETRIEVAL
-                # ------------------------------------------
-
+                # RAG
                 relevant_information = (
                     retrieve_relevant_information(
                         user_problem,
@@ -381,10 +378,7 @@ if st.button(
                     )
                 )
 
-                # ------------------------------------------
-                # USER MESSAGE
-                # ------------------------------------------
-
+                # User message
                 user_message = f"""
 PROBLEM CATEGORY:
 
@@ -402,10 +396,7 @@ Analyze the problem using the selected category
 and retrieved safety knowledge.
 """
 
-                # ------------------------------------------
-                # GROQ AI RESPONSE
-                # ------------------------------------------
-
+                # Groq AI
                 response = client.chat.completions.create(
 
                     model="openai/gpt-oss-120b",
@@ -431,10 +422,7 @@ and retrieved safety knowledge.
                     .content
                 )
 
-                # ------------------------------------------
-                # RISK LEVEL DETECTION
-                # ------------------------------------------
-
+                # Risk level detection
                 risk_match = re.search(
                     r"Risk Level:\s*(Low|Medium|High|Emergency)",
                     answer,
@@ -453,18 +441,12 @@ and retrieved safety knowledge.
 
                     risk_level = "Unknown"
 
-                # ------------------------------------------
-                # SHOW CATEGORY
-                # ------------------------------------------
-
+                # Category
                 st.subheader("📂 Problem Category")
 
                 st.info(category)
 
-                # ------------------------------------------
-                # SHOW RISK
-                # ------------------------------------------
-
+                # Risk
                 st.subheader("🚦 Safety Risk Level")
 
                 if risk_level == "Low":
@@ -517,18 +499,12 @@ and retrieved safety knowledge.
                         "Risk level could not be determined."
                     )
 
-                # ------------------------------------------
-                # AI ANALYSIS
-                # ------------------------------------------
-
+                # AI analysis
                 st.subheader("🛡️ Safety Analysis")
 
                 st.markdown(answer)
 
-                # ------------------------------------------
-                # RETRIEVED KNOWLEDGE
-                # ------------------------------------------
-
+                # Retrieved information
                 with st.expander(
                     "📚 View Retrieved Safety Information"
                 ):
