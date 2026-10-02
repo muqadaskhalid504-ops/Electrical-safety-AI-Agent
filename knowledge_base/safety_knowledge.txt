@@ -1,0 +1,145 @@
+ELECTRICAL SAFETY KNOWLEDGE BASE
+
+Purpose:
+This document provides general electrical safety information for an AI safety assistant. It is intended for awareness and basic safety guidance, not for performing electrical repairs.
+
+1. ELECTRIC SHOCK
+
+Electrical shock can occur when a person comes into contact with energized electrical parts or equipment.
+
+Safety guidance:
+
+* Never touch exposed electrical conductors.
+* Do not touch electrical equipment with wet hands.
+* Keep electrical equipment away from water and wet areas.
+* If a person is receiving an electric shock, do not touch the person while they may still be in contact with the electrical source.
+* Move away from the hazard and contact appropriate emergency or professional help.
+
+2. BURNING SMELL OR OVERHEATING
+
+A burning smell, unusual heat, discoloration, or melting around a socket, plug, cable, or electrical device can indicate an electrical hazard.
+
+Possible causes may include:
+
+* Overloading
+* Loose connections
+* Damaged wiring
+* Faulty equipment
+* Excessive current
+
+Safety guidance:
+
+* Stop using the affected equipment if it can be done safely.
+* Keep away from smoke, sparks, or fire.
+* Do not open or repair the equipment yourself.
+* Contact a qualified electrician for inspection.
+
+3. SPARKS OR ARCING
+
+Sparks, arcing, or visible electrical flashes can indicate a serious electrical fault.
+
+Safety guidance:
+
+* Keep away from the electrical equipment.
+* Do not touch the equipment.
+* Do not attempt to repair the equipment while energized.
+* If there is fire or smoke, move to a safe location and contact appropriate emergency services.
+* A qualified electrician should inspect the electrical system.
+
+4. CIRCUIT BREAKER TRIPPING
+
+Repeated circuit breaker trips can indicate an overloaded circuit, short circuit, faulty appliance, or another electrical problem.
+
+Safety guidance:
+
+* Do not repeatedly reset a breaker without identifying the cause.
+* Disconnect use of the suspected appliance if it can be done safely.
+* Do not bypass the circuit breaker.
+* Contact a qualified electrician if the breaker continues to trip or the cause is unknown.
+
+5. DAMAGED CABLES
+
+Damaged, cut, cracked, frayed, or exposed electrical cables can create shock, short-circuit, and fire hazards.
+
+Safety guidance:
+
+* Do not touch exposed conductors.
+* Do not use damaged electrical equipment.
+* Do not attempt unsafe temporary repairs.
+* Keep people away from the damaged area.
+* Have the equipment or wiring inspected by a qualified professional.
+
+6. ELECTRICAL OVERLOADING
+
+Using too many electrical devices on one outlet or circuit can cause overheating and increase fire risk.
+
+Warning signs may include:
+
+* Hot plugs or sockets
+* Burning smell
+* Discolored outlets
+* Frequent circuit breaker trips
+* Extension cords becoming unusually warm
+
+Safety guidance:
+
+* Avoid overloading outlets and circuits.
+* Do not use damaged extension cords.
+* Have persistent problems inspected by a qualified electrician.
+
+7. WATER AND ELECTRICITY
+
+Water can increase the risk of electric shock.
+
+Safety guidance:
+
+* Keep electrical equipment away from water.
+* Never handle electrical equipment with wet hands.
+* If electrical equipment becomes wet, do not touch or operate it until it has been properly assessed.
+* Seek professional assistance when electrical equipment has been exposed to significant water.
+
+8. EXPOSED LIVE PARTS
+
+Exposed energized electrical parts are a serious hazard.
+
+Safety guidance:
+
+* Do not touch the exposed parts.
+* Keep other people away from the area.
+* Do not attempt to repair or cover live electrical parts yourself.
+* Contact a qualified electrician or appropriate emergency service.
+
+9. ELECTRICAL FIRE
+
+Electrical fires can involve energized equipment and create serious shock and fire hazards.
+
+Safety guidance:
+
+* Move away from the danger.
+* Alert other people in the area.
+* Contact the appropriate emergency service.
+* Do not take unnecessary risks attempting to fight an electrical fire.
+* Do not touch damaged electrical equipment.
+
+10. GENERAL ELECTRICAL SAFETY
+
+General precautions include:
+
+* Use electrical equipment according to its instructions.
+* Inspect cords and plugs for visible damage.
+* Keep electrical equipment dry.
+* Do not bypass protective devices.
+* Do not modify electrical equipment without appropriate professional knowledge and authorization.
+* Use qualified electricians for electrical installation, repair, and inspection work.
+
+IMPORTANT AI SAFETY RULE:
+
+The AI assistant must not provide step-by-step instructions for working on energized electrical equipment, opening dangerous electrical equipment, bypassing protective devices, or performing hazardous electrical repairs.
+
+When the situation may involve immediate danger, the AI should prioritize getting the user away from the hazard and recommending appropriate emergency or qualified professional assistance.
+
+SOURCE CONTEXT:
+
+This knowledge base is based on general electrical safety guidance from recognized workplace and electrical safety resources, including OSHA electrical safety materials and the UK Health and Safety Executive (HSE) guidance on electricity at work.
+
+This knowledge base is for educational and safety-awareness purposes and should not be treated as a substitute for local electrical codes, professional inspection, emergency services, or qualified electrical advice.
