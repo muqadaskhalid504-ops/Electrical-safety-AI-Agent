@@ -1,7 +1,6 @@
-import streamlit as st
+ import streamlit as st
 from groq import Groq
 import re
-
 
 # =========================
 # PAGE CONFIGURATION
@@ -13,7 +12,6 @@ st.set_page_config(
     layout="wide"
 )
 
-
 # =========================
 # SESSION STATE
 # =========================
@@ -23,7 +21,6 @@ if "history" not in st.session_state:
 
 if "last_analysis" not in st.session_state:
     st.session_state.last_analysis = None
-
 
 # =========================
 # CUSTOM CSS
@@ -137,7 +134,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-
 # =========================
 # SIDEBAR
 # =========================
@@ -167,7 +163,6 @@ if st.session_state.history:
         st.session_state.last_analysis = None
         st.rerun()
 
-
 # =========================
 # HEADER
 # =========================
@@ -183,7 +178,6 @@ st.markdown(
     '</div>',
     unsafe_allow_html=True
 )
-
 
 # =========================
 # SAFETY NOTICE
@@ -203,25 +197,19 @@ or appropriate emergency services.
 </div>
 """, unsafe_allow_html=True)
 
-
 # =========================
 # GROQ API
 # =========================
 
 try:
-
     client = Groq(
         api_key=st.secrets["GROQ_API_KEY"]
     )
-
 except Exception:
-
     st.error(
         "GROQ_API_KEY is missing. Please add it in Streamlit Secrets."
     )
-
     st.stop()
-
 
 # =========================
 # LOAD KNOWLEDGE BASE
@@ -231,22 +219,17 @@ except Exception:
 def load_knowledge():
 
     try:
-
         with open(
             "knowledge_base/safety_knowledge.txt",
             "r",
             encoding="utf-8"
         ) as file:
-
             return file.read()
 
     except Exception:
-
         return ""
 
-
 knowledge = load_knowledge()
-
 
 # =========================
 # SIMPLE RAG RETRIEVAL
@@ -300,11 +283,9 @@ def retrieve_knowledge(user_question):
     ]
 
     if top_sections:
-
         return "\n\n".join(top_sections)
 
     return knowledge[:5000]
-
 
 # =========================
 # AI SAFETY SYSTEM PROMPT
@@ -330,6 +311,7 @@ Follow this decision process:
    - Overloading
    - Loose connections
    - Exposed live parts
+
 4. Select exactly ONE risk level:
    Low
    Medium
@@ -373,7 +355,6 @@ IMPORTANT SAFETY RULES:
 - Do not claim certainty when the available information is incomplete.
 """
 
-
 # =========================
 # CATEGORY SELECTION
 # =========================
@@ -391,7 +372,6 @@ category = st.selectbox(
         "💡 Other"
     ]
 )
-
 
 # =========================
 # EXAMPLES
@@ -418,7 +398,6 @@ with col1:
     </div>
     """, unsafe_allow_html=True)
 
-
 with col2:
 
     st.markdown("""
@@ -435,7 +414,6 @@ with col2:
     </div>
     """, unsafe_allow_html=True)
 
-
 # =========================
 # USER INPUT
 # =========================
@@ -447,7 +425,6 @@ user_problem = st.text_area(
     height=130,
     placeholder="Example: My socket is making a buzzing sound and becomes warm."
 )
-
 
 # =========================
 # ANALYZE BUTTON
@@ -485,6 +462,10 @@ Analyze this problem using the safety rules.
 Give a clear and conservative safety assessment.
 """
 
+        # =========================
+        # AI ANALYSIS
+        # =========================
+
         try:
 
             with st.spinner(
@@ -492,7 +473,6 @@ Give a clear and conservative safety assessment.
             ):
 
                 response = client.chat.completions.create(
-
                     model="openai/gpt-oss-120b",
 
                     messages=[
@@ -526,7 +506,6 @@ Give a clear and conservative safety assessment.
             else:
                 risk = "Unknown"
 
-
             # =========================
             # SAVE HISTORY
             # =========================
@@ -539,7 +518,6 @@ Give a clear and conservative safety assessment.
                 }
             )
 
-
             # =========================
             # SAVE LAST ANALYSIS
             # =========================
@@ -551,9 +529,8 @@ Give a clear and conservative safety assessment.
                 "answer": answer
             }
 
-
             # =========================
-            # SAFETY SUMMARY DASHBOARD
+            # SAFETY SUMMARY
             # =========================
 
             st.subheader("📊 Safety Summary Dashboard")
@@ -565,7 +542,6 @@ Give a clear and conservative safety assessment.
                 st.markdown(
                     f"""
                     <div class="dashboard-card">
-
                     <div class="dashboard-title">
                     🚦 Risk Level
                     </div>
@@ -573,19 +549,16 @@ Give a clear and conservative safety assessment.
                     <div class="dashboard-value">
                     {risk}
                     </div>
-
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
-
 
             with col2:
 
                 st.markdown(
                     f"""
                     <div class="dashboard-card">
-
                     <div class="dashboard-title">
                     📂 Category
                     </div>
@@ -593,19 +566,16 @@ Give a clear and conservative safety assessment.
                     <div class="dashboard-value">
                     {category}
                     </div>
-
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
-
 
             with col3:
 
                 st.markdown(
                     """
                     <div class="dashboard-card">
-
                     <div class="dashboard-title">
                     📚 Knowledge
                     </div>
@@ -613,12 +583,10 @@ Give a clear and conservative safety assessment.
                     <div class="dashboard-value">
                     RAG Used
                     </div>
-
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
-
 
             # =========================
             # RISK CARD
@@ -677,7 +645,6 @@ Give a clear and conservative safety assessment.
                     unsafe_allow_html=True
                 )
 
-
             # =========================
             # RECOMMENDATION
             # =========================
@@ -685,27 +652,22 @@ Give a clear and conservative safety assessment.
             st.markdown(
                 """
                 <div class="recommendation-box">
-
                 🛡️ <b>Safety Recommendation</b><br>
-
                 Follow the safety precautions provided below.
                 Do not attempt electrical repairs beyond your level
                 of training or qualification.
-
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
-
             # =========================
-            # AI ANALYSIS
+            # AI SAFETY ANALYSIS
             # =========================
 
             st.subheader("🤖 AI Safety Analysis")
 
             st.markdown(answer)
-
 
             # =========================
             # DOWNLOAD REPORT
@@ -728,14 +690,12 @@ Risk Level:
 {risk}
 
 ========================================
-
 AI SAFETY ANALYSIS
 ========================================
 
 {answer}
 
 ========================================
-
 Safety Notice:
 This report provides educational safety guidance.
 It does not replace professional electrical inspection,
@@ -759,17 +719,20 @@ Generated by Electrical Safety AI Agent
                 use_container_width=True
             )
 
-
             # =========================
-            # RETRIEVED KNOWLEDGE
+            # RETRIEVED RAG KNOWLEDGE
             # =========================
 
             with st.expander(
                 "📚 View Retrieved RAG Knowledge"
             ):
-
                 st.write(retrieved_knowledge)
 
+        except Exception as e:
+
+            st.error(
+                f"AI analysis failed: {str(e)}"
+            )
 
 # =========================
 # HOW IT WORKS
@@ -800,7 +763,6 @@ with workflow_col1:
         unsafe_allow_html=True
     )
 
-
 with workflow_col2:
 
     st.markdown(
@@ -821,7 +783,6 @@ with workflow_col2:
         unsafe_allow_html=True
     )
 
-
 with workflow_col3:
 
     st.markdown(
@@ -841,7 +802,6 @@ with workflow_col3:
         """,
         unsafe_allow_html=True
     )
-
 
 workflow_col4, workflow_col5, workflow_col6 = st.columns(3)
 
@@ -865,7 +825,6 @@ with workflow_col4:
         unsafe_allow_html=True
     )
 
-
 with workflow_col5:
 
     st.markdown(
@@ -886,7 +845,6 @@ with workflow_col5:
         unsafe_allow_html=True
     )
 
-
 with workflow_col6:
 
     st.markdown(
@@ -906,7 +864,6 @@ with workflow_col6:
         """,
         unsafe_allow_html=True
     )
-
 
 # =========================
 # KNOWLEDGE SOURCES
@@ -931,14 +888,12 @@ to support its electrical safety analysis.
 **User Problem → Retrieve Relevant Safety Knowledge → AI Analysis → Risk Level → Safety Guidance**
 """)
 
-
 st.info(
     "⚠️ This application provides educational safety guidance. "
     "For electrical emergencies such as electric shock, fire, smoke, "
     "major sparking, or exposed live parts, move to a safe location "
     "and contact appropriate emergency services or qualified professionals."
 )
-
 
 # =========================
 # FOOTER
