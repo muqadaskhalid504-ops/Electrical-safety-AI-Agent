@@ -123,6 +123,19 @@ st.markdown("""
     margin-top: 20px;
 }
 
+.workflow-box {
+    padding: 18px;
+    border-radius: 12px;
+    background-color: #f8f9fa;
+    border: 1px solid #dddddd;
+    min-height: 180px;
+}
+
+.workflow-number {
+    font-size: 28px;
+    font-weight: bold;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -712,6 +725,120 @@ and retrieved safety knowledge.
                 )
 
                 st.write(str(e))
+
+# --------------------------------------------------
+# HOW IT WORKS
+# --------------------------------------------------
+
+st.divider()
+
+st.subheader("⚙️ How It Works")
+
+flow_col1, flow_col2, flow_col3 = st.columns(3)
+
+with flow_col1:
+
+    st.markdown("""
+    <div class="workflow-box">
+
+    <div class="workflow-number">
+    1️⃣
+    </div>
+
+    <h3>User Input</h3>
+
+    The user describes an electrical problem
+    and selects a problem category.
+
+    </div>
+    """, unsafe_allow_html=True)
+
+with flow_col2:
+
+    st.markdown("""
+    <div class="workflow-box">
+
+    <div class="workflow-number">
+    2️⃣
+    </div>
+
+    <h3>RAG Knowledge</h3>
+
+    The system retrieves relevant information
+    from the Electrical Safety Knowledge Base.
+
+    </div>
+    """, unsafe_allow_html=True)
+
+with flow_col3:
+
+    st.markdown("""
+    <div class="workflow-box">
+
+    <div class="workflow-number">
+    3️⃣
+    </div>
+
+    <h3>AI Analysis</h3>
+
+    The AI Agent analyzes the situation
+    and identifies possible safety risks.
+
+    </div>
+    """, unsafe_allow_html=True)
+
+flow_col4, flow_col5, flow_col6 = st.columns(3)
+
+with flow_col4:
+
+    st.markdown("""
+    <div class="workflow-box">
+
+    <div class="workflow-number">
+    4️⃣
+    </div>
+
+    <h3>Risk Detection</h3>
+
+    The system classifies the situation as
+    Low, Medium, High, or Emergency.
+
+    </div>
+    """, unsafe_allow_html=True)
+
+with flow_col5:
+
+    st.markdown("""
+    <div class="workflow-box">
+
+    <div class="workflow-number">
+    5️⃣
+    </div>
+
+    <h3>Safety Guidance</h3>
+
+    The AI provides precautions and explains
+    when professional help is required.
+
+    </div>
+    """, unsafe_allow_html=True)
+
+with flow_col6:
+
+    st.markdown("""
+    <div class="workflow-box">
+
+    <div class="workflow-number">
+    6️⃣
+    </div>
+
+    <h3>Safety Decision</h3>
+
+    The user receives clear safety-focused
+    guidance based on the identified risk.
+
+    </div>
+    """, unsafe_allow_html=True)
 
 # --------------------------------------------------
 # FOOTER
