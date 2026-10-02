@@ -13,6 +13,13 @@ st.set_page_config(
 )
 
 # --------------------------------------------------
+# SESSION STATE - CHAT HISTORY
+# --------------------------------------------------
+
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+# --------------------------------------------------
 # CUSTOM CSS
 # --------------------------------------------------
 
@@ -91,6 +98,46 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --------------------------------------------------
+# SIDEBAR
+# --------------------------------------------------
+
+with st.sidebar:
+
+    st.header("💬 Analysis History")
+
+    if st.session_state.history:
+
+        for i, item in enumerate(
+            reversed(st.session_state.history),
+            1
+        ):
+
+            st.markdown(
+                f"**{i}. {item['category']}**"
+            )
+
+            st.caption(
+                item["problem"]
+            )
+
+            st.divider()
+
+    else:
+
+        st.info(
+            "No analysis history yet."
+        )
+
+    if st.button(
+        "🧹 Clear History",
+        use_container_width=True
+    ):
+
+        st.session_state.history = []
+
+        st.rerun()
+
+# --------------------------------------------------
 # HEADER
 # --------------------------------------------------
 
@@ -124,7 +171,10 @@ Never touch exposed or live electrical components.
 # --------------------------------------------------
 
 api_key = st.secrets["GROQ_API_KEY"]
-client = Groq(api_key=api_key)
+
+client = Groq(
+    api_key=api_key
+)
 
 # --------------------------------------------------
 # LOAD KNOWLEDGE BASE
@@ -148,7 +198,10 @@ knowledge_base = load_knowledge_base()
 # RAG RETRIEVAL
 # --------------------------------------------------
 
-def retrieve_relevant_information(user_question, knowledge):
+def retrieve_relevant_information(
+    user_question,
+    knowledge
+):
 
     sections = re.split(
         r"\n(?=\d+\.)",
@@ -370,7 +423,10 @@ if st.button(
 
             try:
 
+                # ------------------------------------------
                 # RAG
+                # ------------------------------------------
+
                 relevant_information = (
                     retrieve_relevant_information(
                         user_problem,
@@ -378,7 +434,10 @@ if st.button(
                     )
                 )
 
-                # User message
+                # ------------------------------------------
+                # USER MESSAGE
+                # ------------------------------------------
+
                 user_message = f"""
 PROBLEM CATEGORY:
 
@@ -396,7 +455,10 @@ Analyze the problem using the selected category
 and retrieved safety knowledge.
 """
 
-                # Groq AI
+                # ------------------------------------------
+                # GROQ
+                # ------------------------------------------
+
                 response = client.chat.completions.create(
 
                     model="openai/gpt-oss-120b",
@@ -422,7 +484,10 @@ and retrieved safety knowledge.
                     .content
                 )
 
-                # Risk level detection
+                # ------------------------------------------
+                # RISK DETECTION
+                # ------------------------------------------
+
                 risk_match = re.search(
                     r"Risk Level:\s*(Low|Medium|High|Emergency)",
                     answer,
@@ -441,13 +506,35 @@ and retrieved safety knowledge.
 
                     risk_level = "Unknown"
 
-                # Category
-                st.subheader("📂 Problem Category")
+                # ------------------------------------------
+                # SAVE HISTORY
+                # ------------------------------------------
+
+                st.session_state.history.append(
+                    {
+                        "category": category,
+                        "problem": user_problem,
+                        "risk": risk_level
+                    }
+                )
+
+                # ------------------------------------------
+                # CATEGORY
+                # ------------------------------------------
+
+                st.subheader(
+                    "📂 Problem Category"
+                )
 
                 st.info(category)
 
-                # Risk
-                st.subheader("🚦 Safety Risk Level")
+                # ------------------------------------------
+                # RISK
+                # ------------------------------------------
+
+                st.subheader(
+                    "🚦 Safety Risk Level"
+                )
 
                 if risk_level == "Low":
 
@@ -499,12 +586,20 @@ and retrieved safety knowledge.
                         "Risk level could not be determined."
                     )
 
-                # AI analysis
-                st.subheader("🛡️ Safety Analysis")
+                # ------------------------------------------
+                # AI ANALYSIS
+                # ------------------------------------------
+
+                st.subheader(
+                    "🛡️ Safety Analysis"
+                )
 
                 st.markdown(answer)
 
-                # Retrieved information
+                # ------------------------------------------
+                # KNOWLEDGE
+                # ------------------------------------------
+
                 with st.expander(
                     "📚 View Retrieved Safety Information"
                 ):
