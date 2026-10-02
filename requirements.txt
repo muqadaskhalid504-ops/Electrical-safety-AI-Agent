@@ -1,2 +1,4 @@
-streamlit
-groq
+ app.py
+requirements.txt
+knowledge_base/
+    safety_knowledge.txt
