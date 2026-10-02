@@ -207,4 +207,4 @@ st.caption(
     "⚡ Electrical Safety AI Agent | Hackathon Project | "
     "AI-assisted safety guidance"
 )
-```
+
