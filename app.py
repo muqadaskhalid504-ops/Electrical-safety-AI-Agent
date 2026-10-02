@@ -2,16 +2,23 @@ import streamlit as st
 from groq import Groq
 import re
 
-# ---------------- PAGE CONFIG ----------------
+# --------------------------------------------------
+# PAGE CONFIGURATION
+# --------------------------------------------------
+
 st.set_page_config(
     page_title="Electrical Safety AI Agent",
     page_icon="⚡",
     layout="wide"
 )
 
-# ---------------- CUSTOM CSS ----------------
+# --------------------------------------------------
+# CUSTOM CSS
+# --------------------------------------------------
+
 st.markdown("""
 <style>
+
 .main-title {
     font-size: 42px;
     font-weight: 700;
@@ -39,10 +46,54 @@ st.markdown("""
     background-color: #f5f7fa;
     border: 1px solid #dddddd;
 }
+
+.risk-low {
+    padding: 20px;
+    border-radius: 12px;
+    background-color: #d4edda;
+    border: 2px solid #28a745;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.risk-medium {
+    padding: 20px;
+    border-radius: 12px;
+    background-color: #fff3cd;
+    border: 2px solid #ffc107;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.risk-high {
+    padding: 20px;
+    border-radius: 12px;
+    background-color: #f8d7da;
+    border: 2px solid #dc3545;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.risk-emergency {
+    padding: 20px;
+    border-radius: 12px;
+    background-color: #f5c6cb;
+    border: 3px solid #b30000;
+    text-align: center;
+    font-size: 26px;
+    font-weight: bold;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- HEADER ----------------
+# --------------------------------------------------
+# HEADER
+# --------------------------------------------------
+
 st.markdown(
     '<div class="main-title">⚡ Electrical Safety AI Agent</div>',
     unsafe_allow_html=True
@@ -55,7 +106,10 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ---------------- SAFETY NOTICE ----------------
+# --------------------------------------------------
+# SAFETY NOTICE
+# --------------------------------------------------
+
 st.markdown("""
 <div class="warning-box">
 <b>⚠️ Safety Notice</b><br>
@@ -65,11 +119,17 @@ Never touch exposed or live electrical components.
 </div>
 """, unsafe_allow_html=True)
 
-# ---------------- API ----------------
+# --------------------------------------------------
+# GROQ API
+# --------------------------------------------------
+
 api_key = st.secrets["GROQ_API_KEY"]
 client = Groq(api_key=api_key)
 
-# ---------------- LOAD KNOWLEDGE BASE ----------------
+# --------------------------------------------------
+# LOAD KNOWLEDGE BASE
+# --------------------------------------------------
+
 @st.cache_data
 def load_knowledge_base():
 
@@ -84,12 +144,16 @@ def load_knowledge_base():
 
 knowledge_base = load_knowledge_base()
 
+# --------------------------------------------------
+# RAG RETRIEVAL
+# --------------------------------------------------
 
-# ---------------- SIMPLE RAG RETRIEVAL ----------------
 def retrieve_relevant_information(user_question, knowledge):
 
-    # Convert text into sections
-    sections = re.split(r"\n(?=\d+\.)", knowledge)
+    sections = re.split(
+        r"\n(?=\d+\.)",
+        knowledge
+    )
 
     question_words = set(
         re.findall(
@@ -115,110 +179,92 @@ def retrieve_relevant_information(user_question, knowledge):
             (score, section)
         )
 
-    # Sort by relevance
     scored_sections.sort(
         key=lambda x: x[0],
         reverse=True
     )
 
-    # Select top relevant sections
     relevant_sections = [
         section
         for score, section in scored_sections[:3]
         if score > 0
     ]
 
-    # If no exact match, provide general safety knowledge
     if not relevant_sections:
+
         relevant_sections = [
             knowledge[:5000]
         ]
 
-    return "\n\n".join(relevant_sections)
+    return "\n\n".join(
+        relevant_sections
+    )
 
+# --------------------------------------------------
+# AI SYSTEM PROMPT
+# --------------------------------------------------
 
-# ---------------- AI SYSTEM PROMPT ----------------
 system_prompt = """
 You are an Electrical Safety AI Agent.
 
-Your purpose is to help users understand possible electrical safety
-hazards using the provided safety knowledge.
+Use the retrieved Electrical Safety Knowledge Base to provide
+safe, beginner-friendly guidance.
 
-IMPORTANT:
+For every problem:
 
-The information retrieved from the knowledge base is the primary
-reference for safety guidance.
+1. Understand the electrical situation.
+2. Consider the selected problem category.
+3. Identify possible hazards.
+4. Determine ONE risk level:
+   Low, Medium, High, or Emergency.
+5. Explain why the situation is dangerous.
+6. Provide safe precautions.
+7. Explain when a qualified electrician is needed.
 
-Do not invent safety facts when relevant information is available
-in the knowledge base.
+Emergency situations include:
 
-Follow this decision process:
-
-STEP 1 — Understand the situation
-Identify what electrical equipment, condition, or problem the user
-is describing.
-
-STEP 2 — Identify hazards
-Identify possible hazards such as:
 - Electric shock
-- Short circuit
-- Overheating
-- Fire
-- Arc/sparking
-- Damaged insulation
-- Overloading
-- Loose connection
-- Exposed live parts
-
-STEP 3 — Determine risk level
-Choose exactly ONE:
-- Low
-- Medium
-- High
-- Emergency
-
-Use Emergency when there is an immediate threat such as:
-- Electric shock
-- Active fire
+- Active electrical fire
 - Smoke from electrical equipment
 - Exposed live electrical parts
 - Major sparking or arcing
 - Severe burning smell with overheating
 
-STEP 4 — Recommend safe action
-Give only actions that do not require the user to work on live
-electrical equipment.
-
-STEP 5 — Professional help
-Clearly state when a qualified electrician should inspect the problem.
-
 IMPORTANT SAFETY RULES:
 
-- Never tell the user to touch live wires.
-- Never tell the user to open energized equipment.
-- Never tell the user to bypass a fuse, breaker, RCD, or other
-  protection device.
+- Never tell users to touch live wires.
+- Never tell users to open energized equipment.
+- Never tell users to bypass breakers, fuses, RCDs, or protection devices.
 - Never encourage dangerous electrical experiments.
-- Never provide instructions for working on energized equipment.
+- Never provide step-by-step instructions for working on energized equipment.
 - Do not pretend to physically inspect equipment.
-- If uncertain, prioritize safety and recommend professional help.
+- If uncertain, prioritize safety and professional assistance.
 
-If the user asks how to repair, modify, open, rewire, or troubleshoot
-live electrical equipment, do not provide step-by-step instructions
-for performing the dangerous work.
+For emergency situations, tell the user to move away from the danger
+and seek appropriate emergency/professional help.
 
-Instead, explain the hazard and recommend a qualified electrician.
+IMPORTANT OUTPUT RULE:
 
-For emergency situations, clearly tell the user to move away from
-the danger and seek appropriate emergency/professional help.
+Always write the risk level exactly in this format:
 
-Use this response format:
+Risk Level: Low
+
+OR
+
+Risk Level: Medium
+
+OR
+
+Risk Level: High
+
+OR
+
+Risk Level: Emergency
+
+Then provide:
 
 ⚠️ Possible Hazard:
 ...
-
-🔴 Risk Level:
-Low / Medium / High / Emergency
 
 📖 Why It Is Dangerous:
 ...
@@ -232,19 +278,38 @@ Low / Medium / High / Emergency
 🚨 Emergency Warning:
 ...
 
-At the end, add:
-
 📚 Knowledge Source:
 Electrical Safety Knowledge Base
 """
 
+# --------------------------------------------------
+# PROBLEM CATEGORY
+# --------------------------------------------------
 
-# ---------------- EXAMPLES ----------------
+st.subheader("📂 Select Problem Category")
+
+category = st.selectbox(
+    "What type of electrical problem are you experiencing?",
+    [
+        "🔌 Socket / Wiring",
+        "⚡ Electric Shock",
+        "🔥 Fire / Smoke",
+        "🔧 Electrical Appliance",
+        "🔴 Circuit Breaker",
+        "💡 Other"
+    ]
+)
+
+# --------------------------------------------------
+# EXAMPLES
+# --------------------------------------------------
+
 st.subheader("💡 Example Problems")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
+
     st.markdown("""
     <div class="example-box">
     🔥 Burning smell from socket
@@ -252,6 +317,7 @@ with col1:
     """, unsafe_allow_html=True)
 
 with col2:
+
     st.markdown("""
     <div class="example-box">
     ⚡ Electric shock from appliance
@@ -259,14 +325,17 @@ with col2:
     """, unsafe_allow_html=True)
 
 with col3:
+
     st.markdown("""
     <div class="example-box">
     🔌 Circuit breaker keeps tripping
     </div>
     """, unsafe_allow_html=True)
 
+# --------------------------------------------------
+# USER INPUT
+# --------------------------------------------------
 
-# ---------------- USER INPUT ----------------
 st.subheader("🔍 Describe Your Electrical Problem")
 
 user_problem = st.text_area(
@@ -278,9 +347,14 @@ user_problem = st.text_area(
     height=150
 )
 
+# --------------------------------------------------
+# ANALYZE BUTTON
+# --------------------------------------------------
 
-# ---------------- ANALYZE BUTTON ----------------
-if st.button("🔍 Analyze Safety Risk", type="primary"):
+if st.button(
+    "🔍 Analyze Safety Risk",
+    type="primary"
+):
 
     if not user_problem.strip():
 
@@ -296,14 +370,26 @@ if st.button("🔍 Analyze Safety Risk", type="primary"):
 
             try:
 
-                # Retrieve relevant knowledge
-                relevant_information = retrieve_relevant_information(
-                    user_problem,
-                    knowledge_base
+                # ------------------------------------------
+                # RAG RETRIEVAL
+                # ------------------------------------------
+
+                relevant_information = (
+                    retrieve_relevant_information(
+                        user_problem,
+                        knowledge_base
+                    )
                 )
 
-                # Send retrieved knowledge + user problem to AI
+                # ------------------------------------------
+                # USER MESSAGE
+                # ------------------------------------------
+
                 user_message = f"""
+PROBLEM CATEGORY:
+
+{category}
+
 USER'S ELECTRICAL PROBLEM:
 
 {user_problem}
@@ -312,11 +398,18 @@ RETRIEVED SAFETY KNOWLEDGE:
 
 {relevant_information}
 
-Use the retrieved safety knowledge to analyze the user's problem.
+Analyze the problem using the selected category
+and retrieved safety knowledge.
 """
 
+                # ------------------------------------------
+                # GROQ AI RESPONSE
+                # ------------------------------------------
+
                 response = client.chat.completions.create(
+
                     model="openai/gpt-oss-120b",
+
                     messages=[
                         {
                             "role": "system",
@@ -327,25 +420,122 @@ Use the retrieved safety knowledge to analyze the user's problem.
                             "content": user_message
                         }
                     ],
+
                     temperature=0.2
                 )
 
-                answer = response.choices[0].message.content
-
-                st.success(
-                    "Safety analysis completed using the knowledge base."
+                answer = (
+                    response
+                    .choices[0]
+                    .message
+                    .content
                 )
+
+                # ------------------------------------------
+                # RISK LEVEL DETECTION
+                # ------------------------------------------
+
+                risk_match = re.search(
+                    r"Risk Level:\s*(Low|Medium|High|Emergency)",
+                    answer,
+                    re.IGNORECASE
+                )
+
+                if risk_match:
+
+                    risk_level = (
+                        risk_match
+                        .group(1)
+                        .capitalize()
+                    )
+
+                else:
+
+                    risk_level = "Unknown"
+
+                # ------------------------------------------
+                # SHOW CATEGORY
+                # ------------------------------------------
+
+                st.subheader("📂 Problem Category")
+
+                st.info(category)
+
+                # ------------------------------------------
+                # SHOW RISK
+                # ------------------------------------------
+
+                st.subheader("🚦 Safety Risk Level")
+
+                if risk_level == "Low":
+
+                    st.markdown(
+                        """
+                        <div class="risk-low">
+                        🟢 LOW RISK
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+                elif risk_level == "Medium":
+
+                    st.markdown(
+                        """
+                        <div class="risk-medium">
+                        🟡 MEDIUM RISK
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+                elif risk_level == "High":
+
+                    st.markdown(
+                        """
+                        <div class="risk-high">
+                        🔴 HIGH RISK
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+                elif risk_level == "Emergency":
+
+                    st.markdown(
+                        """
+                        <div class="risk-emergency">
+                        🚨 EMERGENCY
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+                else:
+
+                    st.warning(
+                        "Risk level could not be determined."
+                    )
+
+                # ------------------------------------------
+                # AI ANALYSIS
+                # ------------------------------------------
 
                 st.subheader("🛡️ Safety Analysis")
 
                 st.markdown(answer)
 
-                # Show retrieved information
+                # ------------------------------------------
+                # RETRIEVED KNOWLEDGE
+                # ------------------------------------------
+
                 with st.expander(
                     "📚 View Retrieved Safety Information"
                 ):
 
-                    st.write(relevant_information)
+                    st.write(
+                        relevant_information
+                    )
 
             except Exception as e:
 
@@ -355,8 +545,10 @@ Use the retrieved safety knowledge to analyze the user's problem.
 
                 st.write(str(e))
 
+# --------------------------------------------------
+# FOOTER
+# --------------------------------------------------
 
-# ---------------- FOOTER ----------------
 st.divider()
 
 st.caption(
