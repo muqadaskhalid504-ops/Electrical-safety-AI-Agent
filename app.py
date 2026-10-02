@@ -1,9 +1,9 @@
-import streamlit as st
+ import streamlit as st
 from groq import Groq
 import re
 
 # =========================
-# PAGE CONFIG
+# PAGE CONFIGURATION
 # =========================
 
 st.set_page_config(
@@ -31,7 +31,7 @@ st.markdown("""
 
 .main-title {
     font-size: 42px;
-    font-weight: 800;
+    font-weight: 700;
     text-align: center;
     margin-bottom: 5px;
 }
@@ -52,44 +52,83 @@ st.markdown("""
 }
 
 .example-box {
-    padding: 15px;
-    border-radius: 10px;
-    background-color: #f1f8ff;
-    border-left: 6px solid #2196f3;
-    margin-top: 10px;
-    margin-bottom: 20px;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: #f5f5f5;
+    margin-bottom: 10px;
 }
 
-.dashboard {
+.dashboard-card {
     padding: 20px;
     border-radius: 12px;
-    background-color: #f7f7f7;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    background-color: #f8f9fa;
+    text-align: center;
+    border: 1px solid #ddd;
 }
 
-.risk-card {
-    padding: 25px;
-    border-radius: 12px;
-    text-align: center;
-    font-size: 24px;
+.dashboard-title {
+    font-size: 15px;
+    color: #666;
+}
+
+.dashboard-value {
+    font-size: 22px;
     font-weight: bold;
+    margin-top: 5px;
+}
+
+.risk-low {
+    padding: 18px;
+    border-radius: 12px;
+    background-color: #d4edda;
+    border-left: 6px solid #28a745;
     margin: 15px 0;
 }
 
-.recommendation {
+.risk-medium {
     padding: 18px;
-    border-radius: 10px;
-    background-color: #e8f5e9;
-    border-left: 6px solid #4caf50;
-    margin-top: 15px;
+    border-radius: 12px;
+    background-color: #fff3cd;
+    border-left: 6px solid #ffc107;
+    margin: 15px 0;
 }
 
-.workflow-step {
-    padding: 15px;
+.risk-high {
+    padding: 18px;
+    border-radius: 12px;
+    background-color: #f8d7da;
+    border-left: 6px solid #dc3545;
+    margin: 15px 0;
+}
+
+.risk-emergency {
+    padding: 18px;
+    border-radius: 12px;
+    background-color: #f5c6cb;
+    border-left: 6px solid #b21f2d;
+    margin: 15px 0;
+}
+
+.recommendation-box {
+    padding: 18px;
     border-radius: 10px;
-    background-color: #f5f5f5;
-    margin-bottom: 10px;
+    background-color: #e8f4fd;
+    border-left: 5px solid #2196f3;
+    margin: 15px 0;
+}
+
+.workflow-box {
+    padding: 18px;
+    border-radius: 12px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    text-align: center;
+    min-height: 130px;
+}
+
+.workflow-number {
+    font-size: 28px;
+    font-weight: bold;
 }
 
 </style>
@@ -99,36 +138,29 @@ st.markdown("""
 # SIDEBAR
 # =========================
 
-with st.sidebar:
+st.sidebar.title("⚡ Electrical Safety AI")
 
-    st.header("💬 Analysis History")
+st.sidebar.markdown("### 💬 Analysis History")
 
-    if st.session_state.history:
+if st.session_state.history:
 
-        for i, item in enumerate(
-            reversed(st.session_state.history),
-            start=1
-        ):
-            st.markdown(
-                f"""
-                **{i}. {item['category']}**
-
-                Risk: **{item['risk']}**
-
-                {item['problem'][:80]}...
-                """
-            )
-
-    else:
-        st.info("No analysis yet.")
-
-    st.divider()
-
-    if st.button(
-        "🧹 Clear History",
-        use_container_width=True
+    for i, item in enumerate(
+        reversed(st.session_state.history),
+        start=1
     ):
+        st.sidebar.markdown(
+            f"**{i}. {item['category']}**  \n"
+            f"Risk: **{item['risk']}**"
+        )
+
+else:
+    st.sidebar.info("No analysis history yet.")
+
+if st.session_state.history:
+
+    if st.sidebar.button("🧹 Clear History"):
         st.session_state.history = []
+        st.session_state.last_analysis = None
         st.rerun()
 
 # =========================
@@ -141,24 +173,32 @@ st.markdown(
 )
 
 st.markdown(
-    '<div class="subtitle">AI-powered electrical hazard analysis and safety guidance</div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    """
-    <div class="warning-box">
-    ⚠️ <b>Safety Notice:</b>
-    This application provides educational safety guidance.
-    It does not replace a qualified electrician, electrical engineer,
-    professional inspection, or emergency services.
-    </div>
-    """,
+    '<div class="subtitle">'
+    'AI-powered electrical hazard detection and safety guidance'
+    '</div>',
     unsafe_allow_html=True
 )
 
 # =========================
-# GROQ CLIENT
+# SAFETY NOTICE
+# =========================
+
+st.markdown("""
+<div class="warning-box">
+
+⚠️ <b>Safety Notice:</b><br>
+This AI agent provides educational safety guidance.
+Never touch live electrical wires, open energized equipment,
+bypass circuit protection, or attempt dangerous electrical repairs.
+
+For serious electrical hazards, contact a qualified electrician
+or appropriate emergency services.
+
+</div>
+""", unsafe_allow_html=True)
+
+# =========================
+# GROQ API
 # =========================
 
 try:
@@ -167,10 +207,10 @@ try:
         api_key=st.secrets["GROQ_API_KEY"]
     )
 
-except Exception as e:
+except Exception:
 
     st.error(
-        "Groq API key is missing or incorrectly configured."
+        "GROQ_API_KEY is missing. Please add it in Streamlit Secrets."
     )
 
     st.stop()
@@ -200,21 +240,18 @@ def load_knowledge():
 knowledge = load_knowledge()
 
 # =========================
-# RAG RETRIEVAL
+# SIMPLE RAG RETRIEVAL
 # =========================
 
-def retrieve_knowledge(
-    user_question,
-    knowledge_text,
-    top_k=3
-):
+def retrieve_knowledge(user_question):
 
-    if not knowledge_text:
-        return "No safety knowledge was retrieved."
+    if not knowledge:
+
+        return "No knowledge base available."
 
     sections = re.split(
         r"\n(?=\d+\.)",
-        knowledge_text
+        knowledge
     )
 
     question_words = set(
@@ -236,9 +273,7 @@ def retrieve_knowledge(
         )
 
         score = len(
-            question_words.intersection(
-                section_words
-            )
+            question_words.intersection(section_words)
         )
 
         scored_sections.append(
@@ -250,70 +285,111 @@ def retrieve_knowledge(
         reverse=True
     )
 
-    selected = [
+    top_sections = [
         section
-        for score, section in scored_sections[:top_k]
+        for score, section in scored_sections[:3]
         if score > 0
     ]
 
-    if not selected:
+    if top_sections:
 
-        return knowledge_text[:5000]
+        return "\n\n".join(top_sections)
 
-    return "\n\n".join(selected)
+    return knowledge[:5000]
 
 # =========================
-# SAFETY SYSTEM PROMPT
+# AI SAFETY SYSTEM PROMPT
 # =========================
 
 SYSTEM_PROMPT = """
 You are an Electrical Safety AI Agent.
 
-Your job is to analyze electrical problems and provide
-safe, conservative and educational safety guidance.
+Your primary purpose is to identify electrical hazards
+and provide safe educational guidance.
+
+Follow this decision process:
+
+1. Understand the user's electrical problem.
+2. Identify possible hazards.
+3. Consider:
+   - Electric shock
+   - Short circuit
+   - Overheating
+   - Electrical fire
+   - Sparks or arcing
+   - Damaged insulation
+   - Overloading
+   - Loose connections
+   - Exposed live parts
+
+4. Select exactly ONE risk level:
+   Low
+   Medium
+   High
+   Emergency
+
+Risk guidance:
+
+Low:
+Minor issue with no immediate dangerous signs.
+
+Medium:
+Potential hazard that requires attention.
+
+High:
+Serious electrical hazard where professional help is recommended.
+
+Emergency:
+Electric shock, active fire, smoke, major sparking/arcing,
+exposed live electrical parts, or severe burning/overheating signs.
+
+IMPORTANT:
+The risk level MUST appear exactly in this format:
+
+🔴 Risk Level: Low
+
+OR
+
+🔴 Risk Level: Medium
+
+OR
+
+🔴 Risk Level: High
+
+OR
+
+🔴 Risk Level: Emergency
+
+Always respond using this format:
+
+⚠️ Possible Hazard
+🔴 Risk Level: [one risk level]
+📖 Why It Is Dangerous
+🛡️ Safety Precautions
+👷 Professional Help
+🚨 Emergency Warning
 
 IMPORTANT SAFETY RULES:
 
-1. Never tell the user to touch live electrical wires.
-2. Never tell the user to open energized equipment.
-3. Never tell the user to bypass a circuit breaker or fuse.
-4. Never provide dangerous electrical repair instructions.
-5. Encourage professional help when the situation is dangerous.
-6. For electric shock, active fire, smoke, major sparking,
-   exposed live parts, or severe overheating, treat the
-   situation as HIGH or EMERGENCY depending on severity.
-7. Always prioritize human safety.
-
-Your response MUST use this structure:
-
-⚠️ Possible Hazard:
-[hazard]
-
-🔴 Risk Level: [Low / Medium / High / Emergency]
-
-📖 Why It Is Dangerous:
-[explanation]
-
-🛡️ Safety Precautions:
-[safety precautions]
-
-👷 Professional Help:
-[when professional help is needed]
-
-🚨 Emergency Warning:
-[emergency guidance if applicable]
-
-Do not encourage dangerous DIY electrical work.
+- Never tell the user to touch live wires.
+- Never tell the user to open energized equipment.
+- Never tell the user to bypass a circuit breaker or fuse.
+- Never provide dangerous step-by-step electrical repair instructions.
+- Recommend moving away from dangerous equipment when necessary.
+- Recommend qualified electrical professionals for serious hazards.
+- For fire, smoke, electric shock, major sparks, or exposed live parts,
+  prioritize immediate safety and emergency assistance.
+- Do not claim certainty when the available information is incomplete.
 """
 
 # =========================
-# USER INPUT
+# CATEGORY SELECTION
 # =========================
 
-st.subheader("🔍 Analyze an Electrical Problem")
+st.subheader("📂 Select Problem Category")
 
 category = st.selectbox(
-    "📂 Select Problem Category",
+    "Choose the category that best matches your problem:",
     [
         "🔌 Socket / Wiring",
         "⚡ Electric Shock",
@@ -324,40 +400,67 @@ category = st.selectbox(
     ]
 )
 
-st.markdown(
-    """
+# =========================
+# EXAMPLES
+# =========================
+
+st.subheader("💡 Example Problems")
+
+col1, col2 = st.columns(2)
+
+with col1:
+
+    st.markdown("""
     <div class="example-box">
-    <b>💡 Example:</b>
-    Describe the electrical problem in simple words.
+    🔌 <b>Socket:</b><br>
+    My electrical socket is slightly warm but there is no smoke
+    or burning smell.
     </div>
-    """,
-    unsafe_allow_html=True
-)
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="example-box">
+    🔴 <b>Circuit Breaker:</b><br>
+    My circuit breaker keeps tripping repeatedly.
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+
+    st.markdown("""
+    <div class="example-box">
+    🔥 <b>Fire / Smoke:</b><br>
+    There are sparks and smoke coming from my electrical switch.
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="example-box">
+    ⚡ <b>Electric Shock:</b><br>
+    I received an electric shock from an electrical appliance.
+    </div>
+    """, unsafe_allow_html=True)
+
+# =========================
+# USER INPUT
+# =========================
+
+st.subheader("📝 Describe Your Electrical Problem")
 
 user_problem = st.text_area(
-    "Describe your electrical problem:",
-    placeholder=(
-        "Example: My electrical socket is getting warm "
-        "and I can smell something burning."
-    ),
-    height=150
+    "Enter the problem in simple words:",
+    height=130,
+    placeholder="Example: My socket is making a buzzing sound and becomes warm."
 )
 
 # =========================
 # ANALYZE BUTTON
 # =========================
 
-analyze_button = st.button(
+if st.button(
     "🔍 Analyze Safety Risk",
-    type="primary",
     use_container_width=True
-)
-
-# =========================
-# AI ANALYSIS
-# =========================
-
-if analyze_button:
+):
 
     if not user_problem.strip():
 
@@ -365,29 +468,35 @@ if analyze_button:
             "Please describe your electrical problem first."
         )
 
-        st.stop()
+    else:
 
-    # Retrieve RAG knowledge
-    retrieved_knowledge = retrieve_knowledge(
-        user_problem,
-        knowledge
-    )
+        retrieved_knowledge = retrieve_knowledge(
+            user_problem
+        )
 
-    # AI prompt
-    user_prompt = f"""
+        user_prompt = f"""
 Problem Category:
 {category}
 
 User's Electrical Problem:
 {user_problem}
 
-Relevant Electrical Safety Knowledge:
+Relevant Safety Knowledge:
 {retrieved_knowledge}
 
-Analyze this situation according to the safety rules.
+Analyze this problem using the safety rules.
+
+Give a clear and conservative safety assessment.
 
 IMPORTANT:
-Clearly write the risk level in exactly this format:
+Choose exactly ONE risk level from:
+
+Low
+Medium
+High
+Emergency
+
+Write it exactly as:
 
 🔴 Risk Level: Low
 
@@ -402,236 +511,318 @@ or
 or
 
 🔴 Risk Level: Emergency
-
-Choose only ONE risk level.
 """
 
-    try:
+        # =========================
+        # AI ANALYSIS
+        # =========================
 
-        with st.spinner(
-            "⚡ AI is analyzing the electrical safety risk..."
-        ):
+        try:
 
-            response = client.chat.completions.create(
+            with st.spinner(
+                "🤖 AI Safety Agent is analyzing..."
+            ):
 
-                model="openai/gpt-oss-120b",
+                response = client.chat.completions.create(
 
-                messages=[
-                    {
-                        "role": "system",
-                        "content": SYSTEM_PROMPT
-                    },
-                    {
-                        "role": "user",
-                        "content": user_prompt
-                    }
-                ],
+                    model="openai/gpt-oss-120b",
 
-                temperature=0.2
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": SYSTEM_PROMPT
+                        },
+                        {
+                            "role": "user",
+                            "content": user_prompt
+                        }
+                    ],
+
+                    temperature=0.2
+                )
+
+            answer = response.choices[0].message.content
+
+            # =========================
+            # FIXED RISK DETECTION
+            # =========================
+
+            # Normalize the AI response
+            clean_answer = answer.replace(
+                "**", ""
+            ).replace(
+                "__", ""
             )
 
-        answer = response.choices[0].message.content
+            # First try: exact "Risk Level"
+            risk_match = re.search(
+                r"Risk\s*Level\s*[:\-]?\s*"
+                r"(?:🔴\s*)?"
+                r"(Low|Medium|High|Emergency)",
+                clean_answer,
+                re.IGNORECASE
+            )
 
-        # =========================
-        # RISK LEVEL DETECTION
-        # =========================
+            if risk_match:
 
-        risk_match = re.search(
-            r"Risk\s*Level\s*[:\-]?\s*(?:🔴\s*)?"
-            r"(Low|Medium|High|Emergency)",
-            answer,
-            re.IGNORECASE
-        )
-
-        if risk_match:
-
-            risk = risk_match.group(1).capitalize()
-
-        else:
-
-            # Backup detection
-            answer_lower = answer.lower()
-
-            if "emergency" in answer_lower:
-
-                risk = "Emergency"
-
-            elif "high risk" in answer_lower:
-
-                risk = "High"
-
-            elif "medium risk" in answer_lower:
-
-                risk = "Medium"
-
-            elif "low risk" in answer_lower:
-
-                risk = "Low"
+                risk = risk_match.group(1).capitalize()
 
             else:
 
-                risk = "Unknown"
+                # Second try: Risk Level may be on a
+                # separate line or have extra symbols
+                risk_match = re.search(
+                    r"Risk\s*Level.*?"
+                    r"(Low|Medium|High|Emergency)",
+                    clean_answer,
+                    re.IGNORECASE | re.DOTALL
+                )
 
-        # =========================
-        # SAVE HISTORY
-        # =========================
+                if risk_match:
 
-        st.session_state.history.append(
-            {
+                    risk = risk_match.group(1).capitalize()
+
+                else:
+
+                    # Third backup: search for common
+                    # risk phrases in the complete answer
+                    answer_lower = clean_answer.lower()
+
+                    if re.search(
+                        r"\bemergency\b",
+                        answer_lower
+                    ):
+
+                        risk = "Emergency"
+
+                    elif re.search(
+                        r"\bhigh\s*risk\b",
+                        answer_lower
+                    ):
+
+                        risk = "High"
+
+                    elif re.search(
+                        r"\bmedium\s*risk\b",
+                        answer_lower
+                    ):
+
+                        risk = "Medium"
+
+                    elif re.search(
+                        r"\blow\s*risk\b",
+                        answer_lower
+                    ):
+
+                        risk = "Low"
+
+                    else:
+
+                        risk = "Unknown"
+
+            # =========================
+            # SAVE HISTORY
+            # =========================
+
+            st.session_state.history.append(
+                {
+                    "category": category,
+                    "problem": user_problem,
+                    "risk": risk
+                }
+            )
+
+            # =========================
+            # SAVE LAST ANALYSIS
+            # =========================
+
+            st.session_state.last_analysis = {
                 "category": category,
                 "problem": user_problem,
-                "risk": risk
+                "risk": risk,
+                "answer": answer
             }
-        )
 
-        # =========================
-        # SAVE LAST ANALYSIS
-        # =========================
+            # =========================
+            # SAFETY SUMMARY
+            # =========================
 
-        st.session_state.last_analysis = {
-            "category": category,
-            "problem": user_problem,
-            "risk": risk,
-            "answer": answer
-        }
-
-        # =========================
-        # SAFETY SUMMARY
-        # =========================
-
-        st.markdown(
-            "## 📊 Safety Summary Dashboard"
-        )
-
-        col1, col2, col3 = st.columns(3)
-
-        with col1:
-
-            st.metric(
-                "🚦 Risk Level",
-                risk
+            st.subheader(
+                "📊 Safety Summary Dashboard"
             )
 
-        with col2:
+            col1, col2, col3 = st.columns(3)
 
-            st.metric(
-                "📂 Category",
-                category
+            with col1:
+
+                st.markdown(
+                    f"""
+                    <div class="dashboard-card">
+
+                    <div class="dashboard-title">
+                    🚦 Risk Level
+                    </div>
+
+                    <div class="dashboard-value">
+                    {risk}
+                    </div>
+
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            with col2:
+
+                st.markdown(
+                    f"""
+                    <div class="dashboard-card">
+
+                    <div class="dashboard-title">
+                    📂 Category
+                    </div>
+
+                    <div class="dashboard-value">
+                    {category}
+                    </div>
+
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            with col3:
+
+                st.markdown(
+                    """
+                    <div class="dashboard-card">
+
+                    <div class="dashboard-title">
+                    📚 Knowledge
+                    </div>
+
+                    <div class="dashboard-value">
+                    RAG Used
+                    </div>
+
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            # =========================
+            # RISK CARD
+            # =========================
+
+            if risk.lower() == "low":
+
+                st.markdown(
+                    """
+                    <div class="risk-low">
+
+                    🟢 <b>LOW RISK</b><br>
+
+                    The situation does not appear to show an immediate
+                    serious electrical danger based on the information provided.
+
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            elif risk.lower() == "medium":
+
+                st.markdown(
+                    """
+                    <div class="risk-medium">
+
+                    🟡 <b>MEDIUM RISK</b><br>
+
+                    The situation may become dangerous and should receive
+                    attention from a qualified person.
+
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            elif risk.lower() == "high":
+
+                st.markdown(
+                    """
+                    <div class="risk-high">
+
+                    🔴 <b>HIGH RISK</b><br>
+
+                    A serious electrical hazard may be present.
+                    Avoid unsafe interaction and seek qualified professional help.
+
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            elif risk.lower() == "emergency":
+
+                st.markdown(
+                    """
+                    <div class="risk-emergency">
+
+                    🚨 <b>EMERGENCY</b><br>
+
+                    A potentially life-threatening electrical hazard may be present.
+                    Move to a safe location and contact appropriate emergency
+                    services or qualified professionals.
+
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            else:
+
+                st.warning(
+                    "⚠️ The AI response did not provide a clear risk level."
+                )
+
+            # =========================
+            # RECOMMENDATION
+            # =========================
+
+            st.markdown(
+                """
+                <div class="recommendation-box">
+
+                🛡️ <b>Safety Recommendation</b><br>
+
+                Follow the safety precautions provided below.
+                Do not attempt electrical repairs beyond your level
+                of training or qualification.
+
+                </div>
+                """,
+                unsafe_allow_html=True
             )
 
-        with col3:
+            # =========================
+            # AI SAFETY ANALYSIS
+            # =========================
 
-            st.metric(
-                "📚 Knowledge",
-                "RAG Used"
+            st.subheader(
+                "🤖 AI Safety Analysis"
             )
 
-        # =========================
-        # RISK CARD
-        # =========================
+            st.markdown(answer)
 
-        if risk == "Low":
+            # =========================
+            # DOWNLOAD REPORT
+            # =========================
 
-            risk_color = "#d4edda"
-            risk_message = "🟢 Low Risk"
+            st.subheader(
+                "📥 Download Safety Report"
+            )
 
-        elif risk == "Medium":
-
-            risk_color = "#fff3cd"
-            risk_message = "🟡 Medium Risk"
-
-        elif risk == "High":
-
-            risk_color = "#f8d7da"
-            risk_message = "🔴 High Risk"
-
-        elif risk == "Emergency":
-
-            risk_color = "#ffcccc"
-            risk_message = "🚨 EMERGENCY"
-
-        else:
-
-            risk_color = "#eeeeee"
-            risk_message = "⚪ Risk Level Unknown"
-
-        st.markdown(
-            f"""
-            <div class="risk-card"
-            style="background-color:{risk_color};">
-            {risk_message}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        # =========================
-        # RECOMMENDATION
-        # =========================
-
-        if risk in ["High", "Emergency"]:
-
-            recommendation = """
-            🚨 **Immediate Safety Attention Required**
-
-            Move away from the electrical hazard and avoid
-            touching electrical equipment or exposed wires.
-
-            Contact a qualified electrician or appropriate
-            emergency services when necessary.
-            """
-
-        elif risk == "Medium":
-
-            recommendation = """
-            ⚠️ **Caution Required**
-
-            Avoid using the affected electrical equipment
-            until it can be safely inspected by a qualified
-            professional.
-            """
-
-        elif risk == "Low":
-
-            recommendation = """
-            ✅ **General Safety Guidance**
-
-            Continue to follow basic electrical safety
-            practices and monitor the situation.
-            """
-
-        else:
-
-            recommendation = """
-            ⚠️ **Safety Caution**
-
-            The system could not determine a clear risk level.
-            Follow basic electrical safety precautions and
-            consult a qualified professional.
-            """
-
-        st.markdown(
-            f"""
-            <div class="recommendation">
-            {recommendation}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-        # =========================
-        # AI RESPONSE
-        # =========================
-
-        st.markdown("## 🤖 AI Safety Analysis")
-
-        st.markdown(answer)
-
-        # =========================
-        # DOWNLOAD REPORT
-        # =========================
-
-        report = f"""
+            report = f"""
 ELECTRICAL SAFETY AI AGENT
 Safety Analysis Report
 ========================================
@@ -667,31 +858,31 @@ Generated by Electrical Safety AI Agent
 ========================================
 """
 
-        st.download_button(
-            label="📄 Download Safety Report",
-            data=report,
-            file_name="electrical_safety_report.txt",
-            mime="text/plain",
-            use_container_width=True
-        )
-
-        # =========================
-        # RAG KNOWLEDGE
-        # =========================
-
-        with st.expander(
-            "📚 View Retrieved RAG Knowledge"
-        ):
-
-            st.write(
-                retrieved_knowledge
+            st.download_button(
+                label="📄 Download Safety Report",
+                data=report,
+                file_name="electrical_safety_report.txt",
+                mime="text/plain",
+                use_container_width=True
             )
 
-    except Exception as e:
+            # =========================
+            # RETRIEVED RAG KNOWLEDGE
+            # =========================
 
-        st.error(
-            f"AI analysis failed: {str(e)}"
-        )
+            with st.expander(
+                "📚 View Retrieved RAG Knowledge"
+            ):
+
+                st.write(
+                    retrieved_knowledge
+                )
+
+        except Exception as e:
+
+            st.error(
+                f"AI analysis failed: {str(e)}"
+            )
 
 # =========================
 # HOW IT WORKS
@@ -699,61 +890,163 @@ Generated by Electrical Safety AI Agent
 
 st.divider()
 
-st.subheader("⚙️ How It Works")
+st.subheader(
+    "⚙️ How It Works"
+)
 
-steps = [
-    ("1️⃣", "User Input",
-     "User describes an electrical problem."),
+workflow_col1, workflow_col2, workflow_col3 = st.columns(3)
 
-    ("2️⃣", "RAG Knowledge",
-     "Relevant electrical safety information is retrieved."),
-
-    ("3️⃣", "AI Analysis",
-     "The AI agent analyzes the problem."),
-
-    ("4️⃣", "Risk Detection",
-     "The system identifies the safety risk level."),
-
-    ("5️⃣", "Safety Guidance",
-     "The AI provides safety precautions."),
-
-    ("6️⃣", "Safety Decision",
-     "The user is guided toward safe action or professional help.")
-]
-
-for icon, title, description in steps:
+with workflow_col1:
 
     st.markdown(
-        f"""
-        <div class="workflow-step">
-        <b>{icon} {title}</b><br>
-        {description}
+        """
+        <div class="workflow-box">
+
+        <div class="workflow-number">1️⃣</div>
+
+        <b>User Input</b>
+
+        <p>
+        User describes an electrical problem.
+        </p>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+with workflow_col2:
+
+    st.markdown(
+        """
+        <div class="workflow-box">
+
+        <div class="workflow-number">2️⃣</div>
+
+        <b>RAG Knowledge</b>
+
+        <p>
+        Relevant electrical safety information
+        is retrieved from the knowledge base.
+        </p>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+with workflow_col3:
+
+    st.markdown(
+        """
+        <div class="workflow-box">
+
+        <div class="workflow-number">3️⃣</div>
+
+        <b>AI Analysis</b>
+
+        <p>
+        The AI agent analyzes the problem
+        using the retrieved safety knowledge.
+        </p>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+workflow_col4, workflow_col5, workflow_col6 = st.columns(3)
+
+with workflow_col4:
+
+    st.markdown(
+        """
+        <div class="workflow-box">
+
+        <div class="workflow-number">4️⃣</div>
+
+        <b>Risk Detection</b>
+
+        <p>
+        The agent identifies Low, Medium,
+        High, or Emergency risk.
+        </p>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+with workflow_col5:
+
+    st.markdown(
+        """
+        <div class="workflow-box">
+
+        <div class="workflow-number">5️⃣</div>
+
+        <b>Safety Guidance</b>
+
+        <p>
+        The agent provides safe precautions
+        and professional-help guidance.
+        </p>
+
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+with workflow_col6:
+
+    st.markdown(
+        """
+        <div class="workflow-box">
+
+        <div class="workflow-number">6️⃣</div>
+
+        <b>Safety Decision</b>
+
+        <p>
+        The user receives a clear safety-focused
+        recommendation.
+        </p>
+
         </div>
         """,
         unsafe_allow_html=True
     )
 
 # =========================
-# SOURCES
+# KNOWLEDGE SOURCES
 # =========================
 
 st.divider()
 
-st.subheader("📚 Sources & References")
+st.subheader(
+    "📚 Safety Knowledge Sources"
+)
 
 st.markdown("""
-- OSHA — Electrical Safety Guidance
-- HSE — Electrical Safety Guidance
-- General electrical safety and hazard-prevention practices
+This AI Safety Agent uses a retrieval-based knowledge base
+to support its electrical safety analysis.
+
+### Knowledge Sources
+
+- **OSHA** — Electrical Safety guidance
+- **HSE** — Electrical Safety guidance
+- **General electrical safety and hazard-prevention practices**
+
+### RAG Process
+
+**User Problem → Retrieve Relevant Safety Knowledge → AI Analysis → Risk Level → Safety Guidance**
 """)
 
-st.markdown(
-    """
-    **RAG Process:**
-
-    User Problem → Retrieve Relevant Safety Knowledge
-    → AI Analysis → Risk Level → Safety Guidance
-    """
+st.info(
+    "⚠️ This application provides educational safety guidance. "
+    "For electrical emergencies such as electric shock, fire, smoke, "
+    "major sparking, or exposed live parts, move to a safe location "
+    "and contact appropriate emergency services or qualified professionals."
 )
 
 # =========================
